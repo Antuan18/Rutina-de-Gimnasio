@@ -2,12 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Rutina Arnold Split - Antony</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet"> <!-- Añadido -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
   <style>
     body {
-      font-family: 'Poppins', sans-serif; /* Cambiado */
+      font-family: 'Poppins', sans-serif;
       margin: 0;
       padding: 0;
       transition: background-color 0.3s, color 0.3s;
@@ -15,16 +16,18 @@
       color: #333;
       position: relative;
     }
-    /* Modo Oscuro */
+
     body.dark-mode {
       background-color: #333;
       color: #f8f8f8;
     }
+
     h1 {
       text-align: center;
       margin-top: 30px;
       color: inherit;
     }
+
     .container {
       max-width: 800px;
       margin: 0 auto;
@@ -34,31 +37,37 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       transition: background-color 0.3s, box-shadow 0.3s;
     }
-    /* Modo Oscuro */
+
     .container.dark-mode {
       background-color: #444;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
     }
+
     table {
       width: 100%;
       color: inherit;
       border-collapse: collapse;
     }
+
     th, td {
       padding: 8px;
       border-bottom: 1px solid #ddd;
     }
+
     th {
       text-align: left;
       color: inherit;
     }
+
     .form-group {
       margin-bottom: 15px;
     }
+
     label {
       font-weight: bold;
       color: inherit;
     }
+
     input[type="text"] {
       width: 100%;
       padding: 8px;
@@ -67,6 +76,7 @@
       color: inherit;
       background-color: #fff;
     }
+
     button {
       padding: 10px 20px;
       background-color: #4CAF50;
@@ -75,67 +85,94 @@
       border-radius: 4px;
       cursor: pointer;
       transition: background-color 0.3s;
-      margin-top: 10px; /* Añadido */
+      margin-top: 10px;
     }
+
     button:hover {
       background-color: #45a049;
     }
+
     .rutinaBox {
       border: 1px solid #ddd;
       padding: 15px;
       margin-top: 20px;
       border-radius: 8px;
       background-color: #f8f8f8;
-      position: relative; /* Añadido */
+      position: relative;
     }
-    /* Modo Oscuro */
+
     .rutinaBox.dark-mode {
       background-color: #666;
       border-color: #888;
     }
+
     .rutinaBox h2 {
       margin-top: 0;
       margin-bottom: 10px;
       font-size: 20px;
       color: inherit;
     }
+
     .rutinaEntry {
       margin-bottom: 8px;
       color: inherit;
     }
+
     a {
       color: #007bff;
       text-decoration: none;
     }
+
     a:hover {
       text-decoration: underline;
     }
+
     .green-bg {
       background-color: #aaffaa;
     }
+
     .red-bg {
       background-color: #ffaaaa;
     }
-    /* Líneas de Separación */
+
     .separator {
       border-top: 1px solid #ccc;
       margin-top: 20px;
       margin-bottom: 20px;
     }
+
     .edit-button {
       position: absolute;
       top: 10px;
       right: 10px;
     }
-    /* Estilo para resaltar la palabra "rutina" */
+
     .highlight {
       font-weight: bold;
       text-decoration: underline;
+    }
+
+    .theme-switcher {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 9999;
+    }
+
+    .theme-switcher img {
+      width: 30px;
+      height: auto;
     }
   </style>
 </head>
 <body class="light-mode">
   <h1>Rutina Arnold Split - Antony</h1>
+  <button class="theme-switcher" onclick="toggleDarkMode()">
+    <img id="theme-icon" src="https://image.flaticon.com/icons/png/512/61/61456.png" alt="modo claro">
+  </button>
   <div class="container">
     <h2 style="color: inherit;">Agrega tu rutina aquí</h2>
     <table>
@@ -164,14 +201,29 @@
         <td><input type="text" id="video" name="video" placeholder="https://www.youtube.com/watch?v=... o https://www.tiktok.com/@usuario/video/..."></td>
       </tr>
     </table>
-    <button onclick="agregarRutina()">Agregar Rutina</button> <!-- Modificado -->
-    <!-- Línea de Separación -->
+    <button onclick="agregarRutina()">Agregar Rutina</button>
+    <button onclick="descargarExcel()">Descargar Excel</button>
     <div class="separator"></div>
-    <!-- Cuadros de Rutinas -->
     <div id="rutinasContainer"></div>
   </div>
   
   <script>
+    window.onload = function() {
+      cargarDatos();
+    };
+
+    function guardarDatos() {
+      var rutinas = document.getElementById("rutinasContainer").innerHTML;
+      localStorage.setItem("rutinas", rutinas);
+    }
+
+    function cargarDatos() {
+      var rutinas = localStorage.getItem("rutinas");
+      if (rutinas) {
+        document.getElementById("rutinasContainer").innerHTML = rutinas;
+      }
+    }
+
     function agregarRutina() {
       var dia = document.getElementById("dia").value;
       var rutina = document.getElementById("rutina").value;
@@ -192,7 +244,7 @@
         } else {
           diaBox.classList.add("red-bg");
         }
-        diaBox.innerHTML = `<h2>${dia}<button class="edit-button" onclick="editarRutina('${dia.toLowerCase()}')">Editar</button></h2>`; // Modificado
+        diaBox.innerHTML = `<h2>${dia}<button class="edit-button" onclick="editarRutina('${dia.toLowerCase()}')">Editar</button></h2>`;
         rutinasContainer.appendChild(diaBox);
       }
       
@@ -204,6 +256,8 @@
                                 <strong>Descansos:</strong> ${descansos}<br>
                                 <a href="${video}" target="_blank">Ver Video</a>`;
       diaBox.appendChild(rutinaEntry);
+      
+      guardarDatos();
       
       document.getElementById("dia").value = "";
       document.getElementById("rutina").value = "";
@@ -229,7 +283,7 @@
       return diaActual;
     }
 
-    function editarRutina(dia) { // Agregado
+    function editarRutina(dia) {
       var diaBox = document.getElementById(dia);
       var rutinaEntry = diaBox.querySelector('.rutinaEntry');
       var textoRutina = rutinaEntry.innerHTML;
@@ -250,7 +304,6 @@
       diaBox.removeChild(rutinaEntry);
     }
 
-    // Función para cambiar entre modo claro y oscuro
     function toggleDarkMode() {
       var body = document.body;
       body.classList.toggle("dark-mode");
@@ -260,9 +313,45 @@
       rutinaBoxes.forEach(function(box) {
         box.classList.toggle("dark-mode");
       });
+      var themeIcon = document.getElementById("theme-icon");
+      if (body.classList.contains("dark-mode")) {
+        themeIcon.src = "https://image.flaticon.com/icons/png/512/61/61456.png";
+      } else {
+        themeIcon.src = "https://image.flaticon.com/icons/png/512/61/61469.png";
+      }
+      guardarDatos();
     }
 
-    obtenerDiaActual(); // Llamada a la función al cargar la página para redirigir automáticamente
+    function descargarExcel() {
+      var rutinas = [["Día", "Rutina", "Ejercicio", "Series", "Descansos", "Video Demostración"]];
+      var rutinaBoxes = document.querySelectorAll('.rutinaBox');
+      rutinaBoxes.forEach(function(box) {
+        var dia = box.querySelector('h2').textContent.trim();
+        var rutinaEntries = box.querySelectorAll('.rutinaEntry');
+        rutinaEntries.forEach(function(entry) {
+          var rutina = entry.querySelector('strong:nth-of-type(1)').textContent.replace("Rutina: ", "").trim();
+          var ejercicio = entry.querySelector('strong:nth-of-type(2)').textContent.replace("Ejercicio: ", "").trim();
+          var series = entry.querySelector('strong:nth-of-type(3)').textContent.replace("Series: ", "").trim();
+          var descansos = entry.querySelector('strong:nth-of-type(4)').textContent.replace("Descansos: ", "").trim();
+          var video = entry.querySelector('a').getAttribute('href').trim();
+          rutinas.push([dia, rutina, ejercicio, series, descansos, video]);
+        });
+      });
+      
+      var wb = XLSX.utils.book_new();
+      var ws = XLSX.utils.aoa_to_sheet(rutinas);
+      XLSX.utils.book_append_sheet(wb, ws, "Rutinas");
+      var wbout = XLSX.write(wb, {bookType:'xlsx',  type: 'binary'});
+      function s2ab(s) {
+        var buf = new ArrayBuffer(s.length);
+        var view = new Uint8Array(buf);
+        for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+        return buf;
+      }
+      saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), 'rutinas.xlsx');
+    }
+
+    obtenerDiaActual();
   </script>
 </body>
 </html>
